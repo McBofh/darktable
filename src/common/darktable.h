@@ -471,6 +471,15 @@ static inline size_t dt_get_total_memory()
   size_t length = sizeof(uint64_t);
   sysctl(mib, 2, (void *)&physical_memory, &length, (void *)NULL, 0);
   return physical_memory / 1024;
+#elif defined(__OS_SOLARIS__)
+  uint64_t pagesz, phys;
+  if (((pagesz = sysconf(_SC_PAGESIZE)) < 0) ||
+      ((phys = sysconf(_SC_PHYS_PAGES)) < 0)) {
+    fprintf(stderr, "Unable to determine memory size. Assuming 2Gb\n");
+    return (2097152);
+  } else {
+    return ((pagesz * phys) / 1024);
+  }
 #else
   // assume 2GB until we have a better solution.
   fprintf(stderr, "Unknown memory size. Assuming 2GB\n");
